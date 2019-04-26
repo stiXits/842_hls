@@ -23,32 +23,32 @@ void appendUncompressedByte(const ap_uint<8> *source, ap_uint<8> *destination0, 
     *destination1 = leftshifted;
 }
 
-uint8_t appendCompressedChunk(ap_uint<64> *chunkPointer, outputChunk *writeHead) {
+void appendWord(ap_uint<64> *chunkPointer, outputChunk *writeHead, uint8_t *offset) {
 	ap_uint<64> chunk = *chunkPointer;
 //	uint8_t offset = writeHead->offset;
 
 	// no offset
-	if(writeHead->offset == 0) {
+	if(*offset == 0) {
 		writeHead->high = chunk;
 	}
 	// offset < 64
-	else if(writeHead->offset < 64) {
+	else if(*offset < 64) {
 
-		uint8_t toShift = CHUNK_SIZE_BITS - writeHead->offset;
+		uint8_t toShift = CHUNK_SIZE_BITS - *offset;
 //		// set high
-		ap_uint<64> remainder = writeHead->high(CHUNK_START, CHUNK_START - writeHead->offset + 1);
+		ap_uint<64> remainder = writeHead->high(CHUNK_START, CHUNK_START - *offset + 1);
 		remainder <<= toShift;
 
-		ap_uint<64> newBits = chunk(CHUNK_START, writeHead->offset);
+		ap_uint<64> newBits = chunk(CHUNK_START, *offset);
 //
 		ap_uint<64> result = remainder;
-		result <<= toShift;
+//		result <<= toShift;
 //
 		result |= newBits;
 		writeHead->high = result;
 
 		// set low
-		int numberOfBitsInHigh = CHUNK_SIZE_BITS - writeHead->offset;
+		int numberOfBitsInHigh = CHUNK_SIZE_BITS - *offset;
 
 		// fill overflowing bits into low
 		ap_uint<64> lowWord = chunk(CHUNK_START - numberOfBitsInHigh, 0);
@@ -56,11 +56,12 @@ uint8_t appendCompressedChunk(ap_uint<64> *chunkPointer, outputChunk *writeHead)
 		writeHead->low = lowWord;
 	}
 
-	else if(writeHead->offset == 64) {
+	else if(*offset == 64) {
 		writeHead->low = chunk;
 	}
 
-	return writeHead->offset + 64;
+	*offset += 64;
+	return;
 }
 
 
@@ -114,28 +115,28 @@ uint8_t appendCompressedChunk(ap_uint<64> *chunkPointer, outputChunk *writeHead)
 //	return;
 //}
 
-uint8_t appendOpcode(ap_uint<OPCODE_SIZE> *opcodePointer, outputChunk *writeHead) {
+void appendOpcode(ap_uint<OPCODE_SIZE> *opcodePointer, outputChunk *writeHead, uint8_t *offset) {
 	ap_uint<OPCODE_SIZE> opcode = *opcodePointer;
 
 	// opcode fits into high
-	if(CHUNK_SIZE_BITS - writeHead->offset >= OPCODE_SIZE) {
+	if(CHUNK_SIZE_BITS - *offset >= OPCODE_SIZE) {
 
 		// shift offset bits as far to the right as possible while leaving space for the
 		// opcode bits
-		writeHead->high >>= CHUNK_SIZE_BITS - writeHead->offset - OPCODE_SIZE;
+		writeHead->high >>= CHUNK_SIZE_BITS - *offset - OPCODE_SIZE;
 
 		ap_uint<64> opcode64 = opcode;
 		// add opcode at the right end
 		writeHead->high |= opcode64;
 
 		// shift payload back
-		ap_uint<8> bitsToShift = (CHUNK_SIZE_BITS - writeHead->offset - OPCODE_SIZE);
+		ap_uint<8> bitsToShift = (CHUNK_SIZE_BITS - *offset - OPCODE_SIZE);
 		writeHead->high <<= bitsToShift;
 	}
 	// opcode overlaps into low
 	else {
 		// how many opcode bits fit into high?
-		int numberOfBitsInHigh = CHUNK_SIZE_BITS - writeHead->offset;
+		int numberOfBitsInHigh = CHUNK_SIZE_BITS - *offset;
 		if(numberOfBitsInHigh < 0) {
 			numberOfBitsInHigh = 0;
 		}
@@ -151,15 +152,27 @@ uint8_t appendOpcode(ap_uint<OPCODE_SIZE> *opcodePointer, outputChunk *writeHead
 		// fill remaining opcode bits into low
 		writeHead->low = opcode(numberOfBitsInLow - 1, 0);
 		// shift bits as far left as possible
-		int lowOffset = (writeHead->offset - CHUNK_SIZE_BITS);
+		int lowOffset = (*offset - CHUNK_SIZE_BITS);
 		if(lowOffset < 0) {
 			lowOffset = 0;
 		}
-		writeHead->low <<= (CHUNK_SIZE_BITS - numberOfBitsInLow - lowOffset);
+
+		int bitsToShift = (CHUNK_SIZE_BITS - numberOfBitsInLow - lowOffset);
+		ap_uint<64> lowWord = writeHead->low;
+		lowWord <<= bitsToShift;
+		writeHead->low = lowWord;
 	}
 
-	return writeHead->offset + OPCODE_SIZE;
+	*offset += OPCODE_SIZE;
 }
+
+//uint8_t appendChunk(ap_uint<CHUNK_SIZE_BITS> *opcode, ap_uint<CHUNK_SIZE_BITS> *chunkPointer, outputChunk *writeHead) {
+//	uint8_t offset = appendOpcode(opcode, writeHead);
+//	writeHead->offset = offset;
+//	offset = appendWord(chunkPointer, writeHead);
+//
+//	return offset;
+//}
 
 ap_uint<8> readNextCompressedByte(inputChunkPointer &readHead, const ap_uint<16> input) {
 
