@@ -3,131 +3,9 @@
 #include <cstdlib>
 #include <stdint.h>
 
-#include "ap_int.h"
 #include "sds_lib.h"
-
+#include "ap_int.h"
 #include "tools.h"
-
-bool test_extractOpcode_noOffset() {
-    // binary: 11111000 00000000
-	ap_uint<16> payload = 63488;
-
-    inputChunkPointer readHead;
-    readHead.byteIndex = 0;
-    readHead.offset = 0;
-
-    ap_uint<8> opcode = extractOpcode(0, payload);
-
-    // binary: 00011111
-    return opcode == 31;
-}
-
-bool test_extractOpcode_offset() {
-    // binary: 00111110 00000000
-    ap_uint<16> payload = 15872;
-
-    ap_uint<8> opcode = extractOpcode(2, payload);
-
-    // binary: 00011111
-    return opcode == 31;
-}
-
-bool test_extractOpcode_overlapping() {
-    // binary: 00000011 11100000
-    ap_uint<16> payload = 992;
-
-    ap_uint<8> opcode0 = extractOpcode(6, payload);
-    ap_uint<8> opcode1 = extractOpcode(11, payload);
-
-    // binary: 00011111
-    return opcode0 == 31 && opcode1 == 0;
-}
-
-bool test_appendUncompressedByte_noOffset_lsB() {
-    // 10101010
-    const ap_uint<8> source = 170;
-
-    ap_uint<8> lsB = 0;
-    ap_uint<8> msB = 0;
-
-
-    appendUncompressedByte(&source, &lsB, &msB, 0);
-
-    return lsB == 170 && msB == 0;
-}
-
-bool test_appendUncompressedByte_offset() {
-    // 10101010
-    const ap_uint<8> source = 170;
-
-    ap_uint<8> lsB = 0;
-    ap_uint<8> msB = 0;
-
-
-    appendUncompressedByte(&source, &lsB, &msB, 3);
-
-    // destinations shoul be
-    // 00010101 01000000
-
-    return lsB == 21 && msB == 64;
-}
-
-bool test_appendUncompressedByte_offset_msB() {
-    // 10101010
-    const ap_uint<8> source = 170;
-
-    ap_uint<8> lsB = 0;
-    ap_uint<8> msB = 0;
-
-
-    appendUncompressedByte(&source, &lsB, &msB, 8);
-
-    // destinations should be
-    // 00000000 10101010
-
-    return lsB == 0 && msB == 170;
-}
-
-bool test_readNextCompressedByte_noOffset() {
-
-    // binary: 11000000 11100000 1111111
-    ap_uint<8> payload[] = {192, 224, 255, 192};
-
-    inputChunkPointer readHead;
-    readHead.byteIndex = 0;
-    readHead.offset = 0;
-
-    ap_uint<8> output0 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment(8);
-    ap_uint<8> output1 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment(8);
-    ap_uint<8> output2 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment(8);
-    ap_uint<8> output3 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment(8);
-
-    return output0 == 192 && output1 == 224 && output2 == 255;
-}
-
-bool test_readNextCompressedByte_offset() {
-
-    // binary: 0000|0011 1110|0000 1111|1111 1100|0000
-    ap_uint<8> payload[] = {3, 224, 255, 192};
-
-
-    inputChunkPointer readHead;
-    readHead.byteIndex = 0;
-    readHead.offset = 4;
-
-    ap_uint<8> output0 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment();
-    ap_uint<8> output1 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment();
-    ap_uint<8> output2 = readNextCompressedByte(readHead, (payload[readHead.lsB()], payload[readHead.msB()]));
-    readHead.increment();
-
-    return output0 == 62 && output1 == 15 && output2 == 252;
-}
 
 bool test_appendCompressedChunk_noOffset() {
 
@@ -392,22 +270,96 @@ bool test_appendOpcodeAndChunk() {
     return lowtest && highTest && offsetTest;
 }
 
+bool test_readCompressedChunk_noOffset() {
+	auto payload = (ap_uint<64>*) sds_alloc(2 * sizeof(ap_uint<64>));
+	auto chunk = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto opcode = (ap_uint<OPCODE_SIZE>*) sds_alloc(sizeof(ap_uint<OPCODE_SIZE>));
+	auto offset = (uint8_t*) sds_alloc(sizeof(uint8_t));
+
+	//    11111|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000 00000|000
+	payload[0] = 0b1111111100001001000010100000101100001100000011010000111000001111;
+	payload[1] = 0b0001000000000000000000000000000000000000000000000000000000000000;
+	*opcode = 0;
+	*offset = 0;
+	*chunk = 0;
+
+	ap_uint<64> expectedResult = 0b1110000100100001010000010110000110000001101000011100000111100010;
+	readCompressedChunk(payload, chunk, opcode, offset);
+
+	// debug
+	uint64_t chunki = *chunk;
+	uint8_t offsetti = *offset;
+	uint8_t opcodei = *opcode;
+
+    bool chunkTest = *chunk == expectedResult;
+    bool opcodeTest = *opcode == 0b11111;
+	bool offsetTest = *offset == OPCODE_SIZE;
+
+
+    return chunkTest && opcodeTest && offsetTest;
+
+}
+
+bool test_readCompressedChunk_offset() {
+	auto payload = (ap_uint<64>*) sds_alloc(2 * sizeof(ap_uint<64>));
+	auto chunk = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto opcode = (ap_uint<OPCODE_SIZE>*) sds_alloc(sizeof(ap_uint<OPCODE_SIZE>));
+	auto offset = (uint8_t*) sds_alloc(sizeof(uint8_t));
+
+	//    11111|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000 00000|000
+	payload[0] = 0b1111111111111100001001000010100000101100001100000011010000111000;
+	payload[1] = 0b0011110001000000000000000000000000000000000000000000000000000000;
+	*opcode = 0;
+	*offset = 6;
+	*chunk = 0;
+
+	ap_uint<64> expectedResult = 0b1110000100100001010000010110000110000001101000011100000111100010;
+	readCompressedChunk(payload, chunk, opcode, offset);
+
+	// debug
+	uint64_t chunki = *chunk;
+	uint8_t offsetti = *offset;
+	uint8_t opcodei = *opcode;
+
+    bool chunkTest = *chunk == expectedResult;
+    bool opcodeTest = *opcode == 0b11111;
+	bool offsetTest = *offset == 6 + OPCODE_SIZE;
+
+
+    return chunkTest && opcodeTest && offsetTest;
+
+}
+
+bool test_readCompressedChunk_largeOffset() {
+	auto payload = (ap_uint<64>*) sds_alloc(2 * sizeof(ap_uint<64>));
+	auto chunk = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto opcode = (ap_uint<OPCODE_SIZE>*) sds_alloc(sizeof(ap_uint<OPCODE_SIZE>));
+	auto offset = (uint8_t*) sds_alloc(sizeof(uint8_t));
+
+	//    11111|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000 00000|000
+	payload[0] = 0b1111111111111100001001000010100000101100001100000011010000111111;
+	payload[1] = 0b1110000100100001010000010110000110000001101000011100000111100010;
+	*opcode = 0;
+	*offset = 64 - OPCODE_SIZE;
+	*chunk = 0;
+
+	ap_uint<64> expectedResult = 0b1110000100100001010000010110000110000001101000011100000111100010;
+	readCompressedChunk(payload, chunk, opcode, offset);
+
+	// debug
+	uint64_t chunki = *chunk;
+	uint8_t offsetti = *offset;
+	uint8_t opcodei = *opcode;
+
+    bool chunkTest = *chunk == expectedResult;
+    bool opcodeTest = *opcode == 0b11111;
+	bool offsetTest = *offset == 64;
+
+    return chunkTest && opcodeTest && offsetTest;
+}
+
 bool run_IoTests() {
-    return test_extractOpcode_noOffset()
-           && test_extractOpcode_offset()
-           && test_extractOpcode_overlapping()
-
-           && test_appendUncompressedByte_noOffset_lsB()
-           && test_appendUncompressedByte_offset()
-           && test_appendUncompressedByte_offset_msB()
-
-           && test_readNextCompressedByte_noOffset()
-           && test_readNextCompressedByte_offset()
-
-//           && test_readNextCompressedChunk_noOffset()
-//           && test_readNextCompressedChunk_offset()
-
-           && test_appendCompressedChunk_noOffset()
+    return test_appendCompressedChunk_noOffset()
            && test_appendCompressedChunk_offset()
 		   && test_appendCompressedChunk_onlyLow()
 
@@ -416,6 +368,9 @@ bool run_IoTests() {
 		   && test_appendOpcode_overlappingOffset()
 		   && test_appendOpcode_onlyLow()
 		   && test_appendOpcode_offsetLow()
-		   && test_appendOpcodeAndChunk();
+		   && test_appendOpcodeAndChunk()
+
+		   && test_readCompressedChunk_noOffset()
+		   && test_readCompressedChunk_offset();
 
 }
