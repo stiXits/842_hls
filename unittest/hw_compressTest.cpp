@@ -1,15 +1,16 @@
 #include <cstdlib>
 #include <vector>
-
-#include "../hw842.h"
-#include "../settings.h"
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 //#include "sds_lib.h"
 
+#include "../hw842.h"
+#include "tools.h"
+#include "../settings.h"
+
 bool test_hw842_compress_smallInput() {
 
-//	void *inputMemory = sds_alloc(BLOCK_SIZE * sizeof(ap_uint<8>) + sizeof(std::vector<ap_uint<8>>));
-//	auto inputBuffer = *(new(inputMemory) std::vector<ap_uint<8>>(BLOCK_SIZE, 0));
 	auto inputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
 
     //        11100001  00100001  01000001  01100001  10000001  10100001  11000001  11100010
@@ -21,10 +22,15 @@ bool test_hw842_compress_smallInput() {
     inputBuffer[5] = 161;
     inputBuffer[6] = 193;
     inputBuffer[7] = 226;
+    inputBuffer[8] = 225;
+    inputBuffer[9] = 33;
+    inputBuffer[10] = 65;
+    inputBuffer[11] = 97;
+    inputBuffer[12] = 129;
+    inputBuffer[13] = 161;
+    inputBuffer[14] = 193;
+    inputBuffer[15] = 226;
 
-
-//	void *expectedResultMemory = sds_alloc(BLOCK_SIZE * sizeof(ap_uint<8>) + sizeof(std::vector<ap_uint<8>>));
-//	auto expectedResult = *(new(expectedResultMemory) std::vector<ap_uint<8>>(BLOCK_SIZE, 0));
     auto expectedResult = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
 
     //  00000|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000
@@ -38,10 +44,17 @@ bool test_hw842_compress_smallInput() {
     expectedResult[6] = 14;
     expectedResult[7] = 15;
     expectedResult[8] = 16;
-    expectedResult[9] = 0;
+    expectedResult[9] = 56;
+    expectedResult[10] = 72;
+    expectedResult[11] = 80;
+    expectedResult[12] = 88;
+    expectedResult[13] = 96;
+    expectedResult[14] = 104;
+    expectedResult[15] = 112;
+    expectedResult[16] = 120;
+    expectedResult[17] = 128;
+    expectedResult[18] = 0;
 
-//	void *outputBufferMemory = sds_alloc(BLOCK_SIZE * sizeof(ap_uint<8>) + sizeof(std::vector<ap_uint<8>>));
-//	auto outputBuffer = *(new(outputBufferMemory) std::vector<ap_uint<8>>(BLOCK_SIZE, 0));
     auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
 
     for(int i = 0; i < 64; i++) {
@@ -49,25 +62,14 @@ bool test_hw842_compress_smallInput() {
     }
 
     hw842_compress(inputBuffer, outputBuffer, BLOCK_SIZE);
-
-    bool result = true;
-    for(int i = 0; i < 64; i++) {
-    	if(outputBuffer[i] != expectedResult[i]) {
-    		std::cout<<"array segments differ: output: "<<outputBuffer[i]<<" expected: "<<expectedResult[i]<<std::endl;
-    		result = false;
-    	}
-    }
-//    bool result = true;
-//    bool result = std::equal(outputBuffer.begin(), outputBuffer.begin() + BLOCK_SIZE, expectedResult.begin());
-
-    return result;
+    return assertArraysAreEqual(outputBuffer, expectedResult, BLOCK_SIZE);
 }
 
 bool test_hw842_decompress_smallInput() {
 
 	auto inputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
-    //  00000|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000
-    // opcode|      chunk
+    //  00000|111 00001|001 00001|010 00001|011 00001|100 00001|101 00001|110 00001|111 00010|000      00111|000 01001|000 01010|000 01011|000 01100|000 01101|000 01110|000 01111|000 10000|000
+    // opcode|      chunk																					56      72		  80		88			96		104			112		120			128
 	memset(inputBuffer, 0, sizeof(BLOCK_SIZE * sizeof(ap_uint<8>)));
     inputBuffer[0] = 7;
     inputBuffer[1] = 9;
@@ -78,10 +80,20 @@ bool test_hw842_decompress_smallInput() {
     inputBuffer[6] = 14;
     inputBuffer[7] = 15;
     inputBuffer[8] = 16;
+    inputBuffer[9] = 56;
+    inputBuffer[10] = 72;
+    inputBuffer[11] = 80;
+    inputBuffer[12] = 88;
+    inputBuffer[13] = 96;
+    inputBuffer[14] = 104;
+    inputBuffer[15] = 112;
+    inputBuffer[16] = 120;
+    inputBuffer[17] = 128;
+    inputBuffer[18] = 0;
 
     auto expectedResult = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
     //        11100001  00100001  01000001  01100001  10000001  10100001  11000001  11100010
-    memset(expectedResult, 0, sizeof(BLOCK_SIZE * sizeof(ap_uint<8>)));
+    memset(expectedResult, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
     expectedResult[0] = 225;
     expectedResult[1] = 33;
     expectedResult[2] = 65;
@@ -90,25 +102,51 @@ bool test_hw842_decompress_smallInput() {
     expectedResult[5] = 161;
     expectedResult[6] = 193;
     expectedResult[7] = 226;
-    expectedResult[8] = 0;
+    expectedResult[8] = 225;
+    expectedResult[9] = 33;
+    expectedResult[10] = 65;
+    expectedResult[11] = 97;
+    expectedResult[12] = 129;
+    expectedResult[13] = 161;
+    expectedResult[14] = 193;
+    expectedResult[15] = 226;
 
     auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
-    memset(outputBuffer, 0, sizeof(BLOCK_SIZE * sizeof(ap_uint<8>)));
+    memset(outputBuffer, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
 
     hw842_decompress(&inputBuffer[0], &outputBuffer[0], BLOCK_SIZE);
 
-    bool result = true;
-    for(int i = 0; i < 64; i++) {
-    	if(outputBuffer[i] != expectedResult[i]) {
-    		std::cout<<"array segment " << i << " differs: output: "<<outputBuffer[i]<<" expected: "<<expectedResult[i]<<std::endl;
-    		result = false;
-    	}
+    return assertArraysAreEqual(outputBuffer, expectedResult, BLOCK_SIZE);
+}
+
+bool test_compress_decompress_withRandomData() {
+	// declare databuffers
+	auto inputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+	auto expectedResult = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto intermediateBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+
+    // zero initialise data buffers
+    memset(inputBuffer, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
+    memset(outputBuffer, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
+    memset(intermediateBuffer, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
+    memset(expectedResult, 0, BLOCK_SIZE * sizeof(ap_uint<8>));
+
+    srand (time(NULL));
+
+    // set random input buffer
+    for(int i = 0; i < BLOCK_SIZE; i++) {
+    	inputBuffer[i] = expectedResult[i] = rand();
     }
 
-    return result;
+    hw842_compress(inputBuffer, intermediateBuffer, BLOCK_SIZE);
+    hw842_decompress(intermediateBuffer, outputBuffer, BLOCK_SIZE);
+
+    return assertArraysAreEqual(outputBuffer, expectedResult, BLOCK_SIZE);
 }
 
 bool run_hw_compressTests() {
     return      test_hw842_compress_smallInput()
-            &&  test_hw842_decompress_smallInput();
+            &&  test_hw842_decompress_smallInput()
+			&&	test_compress_decompress_withRandomData();
 }

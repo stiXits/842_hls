@@ -106,5 +106,8 @@ void appendUncompressedByte(const ap_uint<8> *source, ap_uint<8> *destination0, 
 ap_uint<8> readNextCompressedByte(inputChunkPointer &readHead, const ap_uint<16> input);
 void extractAlignedData(outputChunk *chunk, ap_uint<8> out[BLOCK_SIZE], uint32_t outputIterator);
 
-void readCompressedChunk(ap_uint<64> *i_data, ap_uint<64> *o_chunk, ap_uint<OPCODE_SIZE> *o_opcode, uint8_t *io_offset);
+void readCompressedChunk(	const ap_uint<64> i_data[2],
+							ap_uint<64> *o_chunk,
+							ap_uint<OPCODE_SIZE> *o_opcode,
+							uint8_t *io_offset);
 void appendUncompressedChunk(ap_uint<64> chunk, ap_uint<8> out[BLOCK_SIZE], uint32_t outputIterator);

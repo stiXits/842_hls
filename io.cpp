@@ -112,25 +112,27 @@ void extractAlignedData(outputChunk *chunk, ap_uint<8> out[BLOCK_SIZE], uint32_t
 	}
 }
 
-void readCompressedChunk(	ap_uint<64> *i_data,
+void readCompressedChunk(	const ap_uint<64> i_data[2],
 							ap_uint<64> *o_chunk,
 							ap_uint<OPCODE_SIZE> *o_opcode,
 							uint8_t *io_offset) {
+	ap_uint<64> high = i_data[0];
+	ap_uint<64> low = i_data[1];
 
 	// remove offset from raw chunk
-	i_data[0] <<= *io_offset;
+	high <<= *io_offset;
 
 	// acquire opcode bits
-	*o_opcode = i_data[0](CHUNK_START, CHUNK_START - OPCODE_SIZE);
+	*o_opcode = high(CHUNK_START, CHUNK_START - OPCODE_SIZE);
 
 	// remove opcode from raw chunk
-	i_data[0] <<= OPCODE_SIZE;
+	high <<= OPCODE_SIZE;
 
 	// shift remaining bits in the second word of the raw chunk
-	i_data[1] >>= CHUNK_SIZE_BITS - (*io_offset + OPCODE_SIZE);
+	low >>= CHUNK_SIZE_BITS - (*io_offset + OPCODE_SIZE);
 
 	// add up raw chunk bits to chunk
-	*o_chunk = i_data[0] | i_data[1];
+	*o_chunk = high | low;
 	*io_offset += OPCODE_SIZE;
 	return;
 }
