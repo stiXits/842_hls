@@ -46,6 +46,7 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 		uint8_t out6 = out[outputIterator + 6];
 		uint8_t out7 = out[outputIterator + 7];
 
+		// TODO: #1
 		outputIterator += 8;
 		if(offset >= 8) {
 			offset -= 8;
