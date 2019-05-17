@@ -8,8 +8,10 @@ Developing in a high level synthesis dialect leads to long compilation and prepa
 * Compile the code for the actual fpga hardware. Allthough most of the hardware compatibility can be reached within the simulation phase, some issues are not spotted within the simulation phase. Those will be treated in thins step. Afterwards, the compiled binary can be transferred by Jtag to the Ultra96 board and run through sdSoc debugging interface.
 
 ## Environmental details
+* https://www.researchgate.net/publication/4230004_Data_compression_with_restricted_parsings
 * http://zedboard.org/product/ultra96-v2-development-board
 * http://zedboard.org/product/ultra96-usb-jtaguart-pod
 * https://www.xilinx.com/products/design-tools/vivado/integration/esl-design.html
 * https://www.xilinx.com/products/design-tools/software-zone/sdsoc.html
+
 ## How to build and run
