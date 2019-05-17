@@ -1,5 +1,5 @@
 # What this is all about
-Dear traveller You might not find question here for thy answer is 42 but hopefully some helpful information about hardware 842 compression executed on a Ultra96 board. The implementation uses the programmable logic chip provided on this board to accelerate the compression process. The codefragments executet on the fpga hardware are written in Vivado hls and compiled with the sdSoc suite to be embedded in the boards execution environment.
+Dear traveller You might not find question here for thy answer is 42 but hopefully some helpful information about hardware 842 compression executed on an Ultra96 board. The implementation uses the programmable logic chip provided on this board to accelerate the compression process. The codefragments executet on the fpga hardware are written in Vivado hls and compiled with the sdSoc suite to be embedded in the boards execution environment.
 
 ## Build process and repository structure
 Developing in a high level synthesis dialect leads to long compilation and preparation times till the change undertaken will be visible on the actual hardware. To facility the process, I applied a three stages workflow:
