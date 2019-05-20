@@ -1,5 +1,5 @@
 #include "ioTest.h"
-//#include "sw_compressTest.h"
+
 #include "hw_compressTest.h"
 
 bool runTests() {

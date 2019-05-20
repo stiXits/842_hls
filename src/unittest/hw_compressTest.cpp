@@ -2,8 +2,6 @@
 #include <vector>
 #include <stdlib.h>
 
-//#include "sds_lib.h"
-
 #include "../hw842.h"
 #include "tools.h"
 #include "../settings.h"
