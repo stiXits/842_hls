@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "ap_int.h"
 
 bool assertArraysAreEqual(ap_uint<8> *toCheck, ap_uint<8> *reference, int size) {
@@ -15,7 +17,7 @@ bool assertArraysAreEqual(ap_uint<8> *toCheck, ap_uint<8> *reference, int size) 
 }
 
 void initArray(ap_uint<8> *array, uint32_t length, ap_uint<8> initValue) {
-	for(uint32_t i; i < length; i++) {
+	for(uint32_t i = 0; i < length; i++) {
 		array[i] = initValue;
 	}
 }

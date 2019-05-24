@@ -99,7 +99,10 @@ struct outputChunk {
 	}
 };
 
-void appendWord(ap_uint<64> *chunkPointer, outputChunk *writeHead, uint8_t *offset);
+// the chunk lies within an aligned data block (no opcodes before data bytes), so a pointer suffices to address it
+void appendWord(ap_uint<64> *chunkPointer,
+				outputChunk *writeHead,
+				uint8_t *offset);
 
 void appendOpcode(	ap_uint<OPCODE_SIZE> *opcodePointer,
 					outputChunk *writeHead,
@@ -110,8 +113,7 @@ void appendUncompressedByte(const ap_uint<8> *source,
 							ap_uint<8> *destination1,
 							const ap_uint<8> &offset);
 
-ap_uint<8> readNextCompressedByte(	inputChunkPointer &readHead,
-									const ap_uint<16> input);
+ap_uint<8> readNextCompressedByte(inputChunkPointer &readHead, const ap_uint<16> input);
 
 void extractAlignedData(outputChunk *chunk,
 						ap_uint<8> out[BLOCK_SIZE],
