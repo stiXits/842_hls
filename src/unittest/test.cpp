@@ -1,11 +1,4 @@
-#include "ioTest.h"
+// This tells Catch to provide a main() - only do this in one cpp file
+#define CATCH_CONFIG_MAIN
 
-#include "hw_compressTest.h"
-
-bool runTests() {
-
-    // exit code 1 means an error occurred
-    return run_IoTests()
-            //&& run_sw_compressTests()
-			&& run_hw_compressTests();
-}
+#include "../Catch2/single_include/catch2/catch.hpp"

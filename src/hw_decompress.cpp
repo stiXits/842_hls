@@ -1,10 +1,13 @@
 #include "hw842.h"
 #include "io.h"
 #include "settings.h"
+#include "ringbuffer.h"
 
 //#pragma SDS data mem_attribute(in:PHYSICAL_CONTIGUOUS,in:PHYSICAL_CONTIGUOUS)
 int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], uint32_t blockSize)
 {
+	auto buffer = new RingBuffer();
+
     uint32_t outputIterator = 0;
     uint8_t offset = 0;
 
@@ -24,8 +27,23 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 		uint8_t in9 = in[i + 9];
 
     	ap_uint<64> compressedData[2];
-    	compressedData[0] = (in[i + 0], in[i + 1], in[i + 2], in[i + 3], in[i + 4], in[i + 5], in[i + 6], in[i + 7]);
-		compressedData[1] = (in[i + 8], in[i + 9], in[i + 10], in[i + 11], in[i + 12], in[i + 13], in[i + 14], in[i + 15]);
+    	compressedData[0] = (	in[i + 0],
+    							in[i + 1],
+								in[i + 2],
+								in[i + 3],
+								in[i + 4],
+								in[i + 5],
+								in[i + 6],
+								in[i + 7]);
+
+		compressedData[1] = (	in[i + 8],
+								in[i + 9],
+								in[i + 10],
+								in[i + 11],
+								in[i + 12],
+								in[i + 13],
+								in[i + 14],
+								in[i + 15]);
 
     	ap_uint<64> chunk = 0;
     	ap_uint<5> opcode = 0;
@@ -34,7 +52,14 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 
 		// do some real decompression here
 
+		// index I8 chunk
+		if(opcode == 0x19) {
+			uint64_t index = chunk;
+			buffer->get(index, &chunk);
+		}
+
 		appendUncompressedChunk(chunk, out, outputIterator);
+		buffer->add(&chunk);
 
 		// debug
 		uint8_t out0 = out[outputIterator + 0];
@@ -53,6 +78,8 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 			i += 1;
 		}
     }
+
+    delete buffer;
 
     return 0;
 }
