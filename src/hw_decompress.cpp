@@ -1,12 +1,18 @@
 #include "hw842.h"
+
+#include "sds_lib.h"
+
 #include "io.h"
-#include "settings.h"
 #include "ringbuffer.h"
+
+#include "settings.h"
 
 //#pragma SDS data mem_attribute(in:PHYSICAL_CONTIGUOUS,in:PHYSICAL_CONTIGUOUS)
 int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], uint32_t blockSize)
 {
-	auto buffer = new RingBuffer();
+	auto ringBufferMeta = new RingBuffer();
+	ringBufferMeta->index = 0;
+	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
 
     uint32_t outputIterator = 0;
     uint8_t offset = 0;
@@ -55,11 +61,17 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 		// index I8 chunk
 		if(opcode == 0x19) {
 			uint64_t index = chunk;
-			buffer->get(index, &chunk);
+//			#pragma SDS async(9)
+//			getFromRingBuffer(index, &chunk, buffer);
+//			#pragma SDS wait(9)
+
 		}
 
 		appendUncompressedChunk(chunk, out, outputIterator);
-		buffer->add(&chunk);
+
+//		#pragma SDS async(8)
+//		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
+//		#pragma SDS wait(8)
 
 		// debug
 		uint8_t out0 = out[outputIterator + 0];
@@ -79,7 +91,7 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 		}
     }
 
-    delete buffer;
+    delete ringBufferMeta;
 
     return 0;
 }
