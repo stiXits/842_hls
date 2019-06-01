@@ -64,6 +64,7 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 //			#pragma SDS async(9)
 //			getFromRingBuffer(index, &chunk, buffer);
 //			#pragma SDS wait(9)
+			chunk = buffer[index];
 
 		}
 
