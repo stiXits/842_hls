@@ -6,8 +6,8 @@
 
 typedef struct RingBuffer_struct {
 	// TODO: use fixed size integer
-	ap_uint<32> index;
-}  __attribute__ ((packed, aligned(1))) RingBuffer;;
+	uint32_t index;
+}  __attribute__ ((packed, aligned(4))) RingBuffer;
 
 //#pragma SDS data mem_attribute(i_fragment:PHYSICAL_CONTIGUOUS, ringBuffer:PHYSICAL_CONTIGUOUS, buffer::PHYSICAL_CONTIGUOUS)
 void addToRingBuffer(	ap_uint<CHUNK_SIZE_BITS> *i_fragment,

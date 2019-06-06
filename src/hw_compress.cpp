@@ -10,10 +10,10 @@
 //#pragma SDS data mem_attribute(in:PHYSICAL_CONTIGUOUS,out:PHYSICAL_CONTIGUOUS)
 int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], uint32_t blockSize)
 {
-	auto ringBufferMeta = new RingBuffer();
-	ringBufferMeta->index = 0;
+	RingBuffer ringBufferMeta;
+	ringBufferMeta.index = 0;
 	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
-	auto cache = new AddressCache();
+	AddressCache cache;
 
     // append chunk as all (D8) data action
     const ap_uint<8> opCode = 0;
@@ -49,7 +49,7 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
     	// check for cache hit
     	bool valid = false;
     	uint32_t cachedAddress = 0;
-    	cache->get(&chunk, &cachedAddress, &valid);
+    	cache.get(&chunk, &cachedAddress, &valid);
 
     	if(valid) {
     		std::cout << "cache hit!" << std::endl;
@@ -59,13 +59,13 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
     		chunk = cachedAddress;
     	} else {
     		// this is not correct yet! just testing
-    		uint32_t index = ringBufferMeta->index;
-    		cache->set(&chunk, &index);
+    		uint32_t index = ringBufferMeta.index;
+    		cache.set(&chunk, &index);
     	}
 
 
 		#pragma SDS async(7)
-		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
+		addToRingBuffer(&chunk, ringBufferMeta, buffer);
 		#pragma SDS wait(7)
 
 		#pragma SDS async(4)
@@ -102,8 +102,6 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
 		uint8_t out6 = out[outputIterator + 6];
 		uint8_t out7 = out[outputIterator + 7];
     }
-
-    delete ringBufferMeta;
 
     return 0;
 
