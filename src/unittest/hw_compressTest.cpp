@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <stdlib.h>
 
-//#include "sds_lib.h"
+#include "sds_lib.h"
 
 #include "../hw842.h"
 
@@ -98,6 +98,7 @@ protected:
 };
 
 TEST_CASE_METHOD(Fixture, "Compress small input no index actions", "[Compress/Decompress]" ) {
+	std::cout<<"Compress small input no index actions"<<std::endl;
 	auto inputBuffer = uncompressed;
 
 	// break 8-byte repetition, see Fixture
@@ -106,7 +107,7 @@ TEST_CASE_METHOD(Fixture, "Compress small input no index actions", "[Compress/De
 
     auto expectedResult = compressed;
 
-    auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto outputBuffer = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
     initArray(outputBuffer, BLOCK_SIZE, 0);
 
     hw842_compress(inputBuffer, outputBuffer, BLOCK_SIZE);
@@ -115,42 +116,43 @@ TEST_CASE_METHOD(Fixture, "Compress small input no index actions", "[Compress/De
     // which will be subject to an explicit test
     bool arrayTest =  assertArraysAreEqual(outputBuffer, expectedResult, 17);
 
-    free(inputBuffer);
-    free(expectedResult);
     free(outputBuffer);
 
     REQUIRE(arrayTest);
 }
 
 TEST_CASE_METHOD(Fixture, "Compress small input with I8 index actions", "[Compress/Decompress]" ) {
+
+	std::cout<<"Compress small input with I8 index actions"<<std::endl;
 	auto inputBuffer = uncompressed;
 
     auto expectedResult = compressedWithIndex;
 
-    auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto outputBuffer = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
     initArray(outputBuffer, BLOCK_SIZE, 0);
 
+    std::cout<<"compressing";
     hw842_compress(inputBuffer, outputBuffer, BLOCK_SIZE);
+    std::cout<<"done";
 
     // don't veerify whole block, zeroes are beeing replaced with index actions
     // which will be subject to an explicit test
     bool arrayTest =  assertArraysAreEqual(outputBuffer, expectedResult, 17);
 
-    free(inputBuffer);
-    free(expectedResult);
     free(outputBuffer);
 
     REQUIRE(arrayTest);
 }
 
 TEST_CASE_METHOD(Fixture, "Decompress small input", "[Compress/Decompress]" ) {
+	std::cout<<"Decompress small input"<<std::endl;
 	auto inputBuffer = compressed;
     // adapt expected sequence to repetition free input
 	inputBuffer[12] = 88;
 
     auto expectedResult = uncompressed;
 
-    auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto outputBuffer = (ap_uint<8>*) malloc(2 *BLOCK_SIZE * sizeof(ap_uint<8>));
     initArray(outputBuffer, BLOCK_SIZE, 0);
 
     // To the moment there is some bit garbage at the end of the block due to mismatching strides
@@ -160,19 +162,18 @@ TEST_CASE_METHOD(Fixture, "Decompress small input", "[Compress/Decompress]" ) {
     //debug
     bool arrayTest = assertArraysAreEqual(outputBuffer, expectedResult, BLOCK_SIZE - 5);
 
-    free(inputBuffer);
-    free(expectedResult);
     free(outputBuffer);
 
     REQUIRE(arrayTest);
 }
 
 TEST_CASE_METHOD(Fixture, "Decompress small input with I8 index actions", "[Compress/Decompress]" ) {
+	std::cout<<"Decompress small input with I8 index actions"<<std::endl;
 	auto inputBuffer = compressedWithIndex;
 
     auto expectedResult = uncompressed;
 
-    auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto outputBuffer = (ap_uint<8>*) malloc(2 *BLOCK_SIZE * sizeof(ap_uint<8>));
     initArray(outputBuffer, BLOCK_SIZE, 0);
 
     // To the moment there is some bit garbage at the end of the block due to mismatching strides
@@ -182,18 +183,17 @@ TEST_CASE_METHOD(Fixture, "Decompress small input with I8 index actions", "[Comp
     //debug
     bool arrayTest = assertArraysAreEqual(outputBuffer, expectedResult, BLOCK_SIZE - 5);
 
-    free(inputBuffer);
-    free(expectedResult);
     free(outputBuffer);
 
     REQUIRE(arrayTest);
 }
 
 TEST_CASE( "Compress & Decompress random data", "[Compress/Decompress]" ) {
+	std::cout<< "Compress & Decompress random data"<<std::endl;
 	// declare databuffers
 	auto inputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
-	auto expectedResult = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
-    auto intermediateBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+	auto expectedResult = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto intermediateBuffer = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
     auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
 
     // zero initialise data buffers
@@ -202,7 +202,7 @@ TEST_CASE( "Compress & Decompress random data", "[Compress/Decompress]" ) {
     initArray(intermediateBuffer, BLOCK_SIZE, 0);
     initArray(expectedResult, BLOCK_SIZE, 0);
 
-    srand(123456734);
+    srand(234898);
 
     // set random input buffer
     for(int i = 0; i < BLOCK_SIZE; i++) {
@@ -223,9 +223,10 @@ TEST_CASE( "Compress & Decompress random data", "[Compress/Decompress]" ) {
 }
 
 TEST_CASE_METHOD(Fixture, "Compress & Decompress small input with I8 index actions", "[Compress/Decompress]" ) {
+	std::cout<<"Compress & Decompress small input with I8 index actions"<<std::endl;
 	auto inputBuffer = uncompressed;
 
-    auto intermediateBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
+    auto intermediateBuffer = (ap_uint<8>*) malloc(2 * BLOCK_SIZE * sizeof(ap_uint<8>));
     initArray(intermediateBuffer, BLOCK_SIZE, 0);
 
     auto outputBuffer = (ap_uint<8>*) malloc(BLOCK_SIZE * sizeof(ap_uint<8>));
@@ -238,7 +239,6 @@ TEST_CASE_METHOD(Fixture, "Compress & Decompress small input with I8 index actio
     // which will be subject to an explicit test
     bool arrayTest =  assertArraysAreEqual(outputBuffer, inputBuffer, 16);
 
-    free(inputBuffer);
     free(intermediateBuffer);
     free(outputBuffer);
 

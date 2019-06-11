@@ -10,14 +10,14 @@
 //#pragma SDS data mem_attribute(in:PHYSICAL_CONTIGUOUS,in:PHYSICAL_CONTIGUOUS)
 int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], uint32_t blockSize)
 {
-	RingBuffer ringBufferMeta;
-	ringBufferMeta.index = 0;
+	auto ringBufferMeta = (RingBuffer*) sds_alloc(sizeof(RingBuffer));
+	ringBufferMeta->index = 0;
 	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
 
     uint32_t outputIterator = 0;
     uint8_t offset = 0;
 
-    for(uint8_t i = 0; i <= blockSize; i += CHUNK_SIZE)
+    for(uint8_t i = 0; i <= blockSize - CHUNK_SIZE; i += CHUNK_SIZE)
     {
 
     	// debug
@@ -70,9 +70,9 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 
 		appendUncompressedChunk(chunk, out, outputIterator);
 
-		#pragma SDS async(8)
-		addToRingBuffer(&chunk, ringBufferMeta, buffer);
-		#pragma SDS wait(8)
+//		#pragma SDS async(8)
+		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
+//		#pragma SDS wait(8)
 
 		// debug
 		uint8_t out0 = out[outputIterator + 0];

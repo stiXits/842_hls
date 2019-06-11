@@ -16,7 +16,9 @@
 class TestFixture {};
 
 void appendWordWrapper(ap_uint<64> *chunkPointer, outputChunk *writeHead, uint8_t *offset) {
+	#pragma SDS async(2)
 	appendWord(chunkPointer, writeHead, offset);
+	#pragma SDS wait(2)
 }
 
 void readCompressedChunkWrapper(	const ap_uint<64> i_data[2],
@@ -27,7 +29,9 @@ void readCompressedChunkWrapper(	const ap_uint<64> i_data[2],
 }
 
 void appendOpcodeWrapper(ap_uint<OPCODE_SIZE> *opcodePointer, outputChunk *writeHead, uint8_t *offset) {
+	#pragma SDS async(1)
 	appendOpcode(opcodePointer, writeHead, offset);
+	#pragma SDS wait(1)
 }
 
 TEST_CASE( "Append compressed chunk", "[IO]" ) {
@@ -124,9 +128,7 @@ TEST_CASE_METHOD(TestFixture, "Append opcode with no offset", "[IO]" ) {
     writeHead->high = 0;
     *offset = 0;
 
-	#pragma SDS async(1)
     appendOpcodeWrapper(payload, writeHead, offset);
-	#pragma SDS wait(1)
 
     uint64_t lowi = writeHead->low;
     uint64_t highi = writeHead->high;
@@ -279,17 +281,13 @@ TEST_CASE( "Append opcode and compressed", "[IO]" ) {
     writeHead->high = 0;
     *offset = 0;
 
-	#pragma SDS async(3)
 	appendOpcodeWrapper(opcode, writeHead, offset);
-	#pragma SDS wait(3)
 
 	uint64_t lowi = writeHead->low;
 	uint64_t highi = writeHead->high;
 	uint64_t offsetti = *offset;
 
-	#pragma SDS async(2)
 	appendWordWrapper(payload, writeHead, offset);
-	#pragma SDS wait(2)
 
     lowi = writeHead->low;
     highi = writeHead->high;

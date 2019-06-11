@@ -29,6 +29,8 @@ const void getFromRingBufferWrapper(	const uint64_t i_index,
 
 TEST_CASE( "Append elements till buffer is full", "[RingBuffer]" ) {
 
+	std::cout<<"Append elements till buffer is full"<<std::endl;
+
 	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
 	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
 	auto *bufferMeta = (RingBuffer*) sds_alloc(sizeof(RingBuffer));
@@ -53,6 +55,7 @@ TEST_CASE( "Append elements till buffer is full", "[RingBuffer]" ) {
 }
 
 TEST_CASE( "Append elements and overwrite existing", "[RingBuffer]" ) {
+	std::cout<<"Append elements and overwrite existing"<<std::endl;
 	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
 	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
 	auto *bufferMeta = (RingBuffer*) sds_alloc(sizeof(RingBuffer));

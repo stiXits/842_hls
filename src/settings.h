@@ -5,4 +5,4 @@
 #define CHUNK_SIZE_BITS 64
 #define OPCODE_SIZE 5
 #define CACHE_SIZE 32
-#define RINGBUFFER_SIZE 4
+#define RINGBUFFER_SIZE 16
