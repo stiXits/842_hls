@@ -52,7 +52,7 @@ int hw842_decompress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE]
 								in[i + 15]);
 
     	ap_uint<64> chunk = 0;
-    	ap_uint<5> opcode = 0;
+    	ap_uint<OPCODE_SIZE> opcode = 0;
 
 		readCompressedChunk(compressedData, &chunk, &opcode, &offset);
 

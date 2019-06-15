@@ -67,8 +67,12 @@ struct inputChunkPointer {
 };
 
 typedef struct outputChunk_struct {
-	ap_uint<64> high, low = 0;
+	uint64_t high, low = 0;
 	uint8_t offset = 0;
+	uint64_t padding0;
+	uint32_t padding1;
+	uint16_t padding2;
+	uint8_t padding3;
 
 	bool readyToExtract() {
 		return offset >= 64;
@@ -83,10 +87,10 @@ typedef struct outputChunk_struct {
 
 		return toTransfer;
 	}
-} __attribute__ ((packed, aligned(4))) outputChunk;
+} __attribute__ ((packed, aligned(32))) outputChunk;
 
 // the chunk lies within an aligned data block (no opcodes before data bytes), so a pointer suffices to address it
-void appendWord(ap_uint<64> *chunkPointer,
+void appendWord(uint64_t chunkT,
 				outputChunk *writeHead,
 				uint8_t *offset);
 

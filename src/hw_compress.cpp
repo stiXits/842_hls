@@ -41,7 +41,7 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
 		uint8_t in7 = in[i + 7];
 
 		// D8 action for now
-    	ap_uint<5> opcode = 0;
+    	ap_uint<OPCODE_SIZE> opcode = 0;
     	ap_uint<64> chunk = (	in[i + 0],
     							in[i + 1],
 								in[i + 2],
@@ -72,15 +72,13 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
     	}
 
 
-    	std::cout<<"addToRingbuffer: "<<chunk<<std::endl;
-		#pragma SDS async(7)
-		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
-		#pragma SDS wait(7)
+//    	std::cout<<"addToRingbuffer: "<<chunk<<std::endl;
+//		#pragma SDS async(4)
+//		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
+//		#pragma SDS wait(4)
 
 		std::cout<<"appendOpcode: "<<opcode<<std::endl;
-		#pragma SDS async(4)
 		appendOpcode(&opcode, &writeHead, &offset);
-		#pragma SDS wait(4)
 
     	uint8_t change = offset;
     	writeHead.offset = offset;
@@ -91,10 +89,10 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
     		outputIterator += 8;
     	}
 
-//    	std::cout<<"appendWord: "<<chunk<<" writehead: "<<writeHead.high<<" "<<writeHead.low<<" opcode: "<<opcode<<" offset: " << offset<< std::endl;
-		#pragma SDS async(5)
-		appendWord(&chunk, &writeHead, &offset);
-		#pragma SDS wait(5)
+    	std::cout<<"appendWord: "<<chunk<<" writehead: "<<writeHead.high<<" "<<writeHead.low<<" opcode: "<<opcode<<" offset: " << offset<< std::endl;
+//		#pragma SDS async(6)
+		appendWord((uint64_t) chunk, &writeHead, &offset);
+//		#pragma SDS wait(6)
 
 		change = offset;
 		writeHead.offset = offset;
