@@ -14,17 +14,17 @@
 void  addToRingBufferWrapper(	ap_uint<CHUNK_SIZE_BITS> *i_fragment,
 								RingBuffer& ringBufferMeta,
 								ap_uint<CHUNK_SIZE_BITS> buffer[RINGBUFFER_SIZE]) {
-	#pragma SDS async(10)
+//	#pragma SDS async(10)
 	addToRingBuffer(i_fragment, ringBufferMeta, buffer);
-	#pragma SDS wait(10)
+//	#pragma SDS wait(10)
 }
 
 const void getFromRingBufferWrapper(	const uint64_t i_index,
 								ap_uint<CHUNK_SIZE_BITS> *o_fragment,
 								ap_uint<CHUNK_SIZE_BITS> buffer[RINGBUFFER_SIZE]) {
-	#pragma SDS async(11)
+//	#pragma SDS async(11)
 	getFromRingBuffer(i_index, o_fragment, buffer);
-	#pragma SDS wait(11)
+//	#pragma SDS wait(11)
 }
 
 TEST_CASE( "Append elements till buffer is full", "[RingBuffer]" ) {

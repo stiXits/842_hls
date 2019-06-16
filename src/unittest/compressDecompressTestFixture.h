@@ -81,6 +81,11 @@ public:
 	    compressedWithIndex[17] = 0;
 	    compressedWithIndex[18] = 0;
 	}
+	~Fixture() {
+		free(uncompressed);
+		free(compressed);
+		free(compressedWithIndex);
+	}
 protected:
 	ap_uint<8> *uncompressed;
 	ap_uint<8> *compressed;

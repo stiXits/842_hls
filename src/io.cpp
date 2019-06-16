@@ -125,7 +125,7 @@ void readCompressedChunk(	const ap_uint<64> i_data[2],
 	high <<= *io_offset;
 
 	// acquire opcode bits
-	*o_opcode = high(CHUNK_START + 1, CHUNK_START - OPCODE_SIZE + 1);
+	*o_opcode = high(CHUNK_START, CHUNK_START - OPCODE_SIZE);
 
 	// remove opcode from raw chunk
 	high <<= OPCODE_SIZE;
