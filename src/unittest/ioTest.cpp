@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "ap_int.h"
 
-#include "sds_lib.h"
+//#include "sds_lib.h"
 
 // helpers
 #include "tools.h"
@@ -16,9 +16,9 @@
 class TestFixture {};
 
 void appendWordWrapper(uint64_t chunk, outputChunk *writeHead, uint8_t *offset) {
-	#pragma SDS async(2)
+//	#pragma SDS async(2)
 	appendWord(chunk, writeHead, offset);
-	#pragma SDS wait(2)
+//	#pragma SDS wait(2)
 }
 
 void readCompressedChunkWrapper(	const ap_uint<64> i_data[2],
@@ -29,9 +29,9 @@ void readCompressedChunkWrapper(	const ap_uint<64> i_data[2],
 }
 
 void appendOpcodeWrapper(ap_uint<OPCODE_SIZE> *opcodePointer, outputChunk *writeHead, uint8_t *offset) {
-	#pragma SDS async(1)
+//	#pragma SDS async(1)
 	appendOpcode(opcodePointer, writeHead, offset);
-	#pragma SDS wait(1)
+//	#pragma SDS wait(1)
 }
 
 TEST_CASE( "Append compressed chunk", "[IO]" ) {

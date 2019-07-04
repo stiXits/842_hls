@@ -1,6 +1,6 @@
 #include "hw842.h"
 
-#include "sds_lib.h"
+//#include "sds_lib.h"
 #include "ap_int.h"
 
 #include "io.h"
@@ -11,9 +11,8 @@
 int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], uint32_t blockSize)
 {
 
-	auto ringBufferMeta = (RingBuffer*)sds_alloc(sizeof(RingBuffer));
-	ringBufferMeta->index = 0;
-	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto ringBufferMeta = new RingBuffer();
+	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) malloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
 	AddressCache cache;
 
 	for(uint32_t i = 0; i < CACHE_SIZE; i++) {
@@ -72,9 +71,9 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
     	}
 
 
-//    	std::cout<<"addToRingbuffer: "<<chunk<<std::endl;
+    	std::cout<<"addToRingbuffer: "<<chunk<<std::endl;
 //		#pragma SDS async(4)
-//		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
+		addToRingBuffer(&chunk, *ringBufferMeta, buffer);
 //		#pragma SDS wait(4)
 
 		std::cout<<"appendOpcode: "<<opcode<<std::endl;
@@ -97,14 +96,14 @@ int hw842_compress(const ap_uint<8> in[BLOCK_SIZE], ap_uint<8> out[BLOCK_SIZE], 
 		change = offset;
 		writeHead.offset = offset;
 
-		std::cout<<"extractAlignedData: "<<std::endl;
+//		std::cout<<"extractAlignedData: "<<std::endl;
 		extractAlignedData(&writeHead, out, outputIterator);
 		offset = writeHead.offset;
 		if(change != writeHead.offset) {
 			outputIterator += 8;
 		}
 
-		std::cout<<"set output: "<<std::endl;
+//		std::cout<<"set output: "<<std::endl;
 		// debug
 		uint8_t out0 = out[outputIterator + 0];
 		uint8_t out1 = out[outputIterator + 1];

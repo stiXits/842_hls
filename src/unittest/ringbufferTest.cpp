@@ -5,7 +5,7 @@
 #include "../ringbuffer.h"
 
 // fundamentals
-#include "sds_lib.h"
+//#include "sds_lib.h"
 #include "stdint.h"
 
 // global magic numbers
@@ -31,14 +31,12 @@ TEST_CASE( "Append elements till buffer is full", "[RingBuffer]" ) {
 
 	std::cout<<"Append elements till buffer is full"<<std::endl;
 
-	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
-	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
-	auto *bufferMeta = (RingBuffer*) sds_alloc(sizeof(RingBuffer));
-	auto bufferrMeta = new (buffer) RingBuffer();
-	bufferrMeta->index = 0;
+	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) malloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) malloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto bufferMeta = new RingBuffer();
 
 	for(ap_uint<CHUNK_SIZE_BITS> i = 0; i < RINGBUFFER_SIZE; i++) {
-		addToRingBufferWrapper(&i, *bufferrMeta, buffer);
+		addToRingBufferWrapper(&i, *bufferMeta, buffer);
 	}
 
 	bool bufferTest = true;
@@ -56,11 +54,9 @@ TEST_CASE( "Append elements till buffer is full", "[RingBuffer]" ) {
 
 TEST_CASE( "Append elements and overwrite existing", "[RingBuffer]" ) {
 	std::cout<<"Append elements and overwrite existing"<<std::endl;
-	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
-	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) sds_alloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
-	auto *bufferMeta = (RingBuffer*) sds_alloc(sizeof(RingBuffer));
-	auto bufferrMeta = new (buffer) RingBuffer();
-	bufferrMeta->index = 0;
+	auto buffer = (ap_uint<CHUNK_SIZE_BITS>*) malloc(RINGBUFFER_SIZE*sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto payload = (ap_uint<CHUNK_SIZE_BITS>*) malloc(sizeof(ap_uint<CHUNK_SIZE_BITS>));
+	auto bufferMeta = new RingBuffer();
 
 	for(ap_uint<CHUNK_SIZE_BITS> i = 0; i < RINGBUFFER_SIZE; i++) {
 		addToRingBufferWrapper(&i, *bufferMeta, buffer);
